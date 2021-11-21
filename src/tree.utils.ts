@@ -1,4 +1,12 @@
 export class TreeUtils {
+	/**
+	 * 
+	 * Build a tree structure from an array.
+	 * 
+	 * @param array data source array.
+	 * @param options - { idPropertyName, parentIdPropertyName }, the properties to be used as a link among the nodes.
+	 * @returns tree like object built from array given.
+	 */
 	public static treeFrom<T, K extends keyof T>(
 		array: T[],
 		options: {
@@ -14,13 +22,12 @@ export class TreeUtils {
 			const idPropertyName = options.idPropertyName;
 			const parentIdPropertyName = options.parentIdPropertyName;
 
-			const nodesByKey: Map<T[K], T> =
-				array.reduce((previous, current) => {
-					const key = current[idPropertyName];
-					(current as any).children = [];
-					previous.set(key, current);
-					return previous;
-				}, new Map());
+			const nodesByKey: Map<T[K], T> = new Map();
+			array.forEach((value) => {
+				const key = value[idPropertyName];
+				(value as any).children = [];
+				nodesByKey.set(key, value);
+			}, new Map());
 
 			for (const node of array) {
 				const currentParentKey = node[parentIdPropertyName];
