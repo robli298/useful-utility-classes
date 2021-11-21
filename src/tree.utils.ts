@@ -6,11 +6,9 @@ export class TreeUtils {
 			parentIdPropertyName: K;
 		}
 	) {
-		type U = T & { children: U[] };
 
-		const root: U = {
-			children: []
-		} as any;
+		type U = T & { children: U[] };
+		const root: U[] = [];
 
 		if (array) {
 			const idPropertyName = options.idPropertyName;
@@ -28,12 +26,13 @@ export class TreeUtils {
 				const currentParentKey = node[parentIdPropertyName];
 				const currentKey = node[idPropertyName];
 				const currentNode = nodesByKey.get(currentKey);
+
 				if (currentParentKey) {
 					const currentParentNode = nodesByKey.get(currentParentKey);
 					(currentParentNode as any).children.push(currentNode);
 					continue;
 				}
-				root.children.push(currentNode as any);
+				root.push(currentNode as any);
 			}
 		}
 		return root;
