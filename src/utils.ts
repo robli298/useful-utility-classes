@@ -1,8 +1,14 @@
 export class Utils {
-	public static debounce(func: Function, wait: number, immediate: boolean) {
+	public static debounce(func: Function, wait: number, immediate: boolean = false) {
+		let timeout: any;
 		return function (this: any, args: any = '') {
-			console.log(wait);
-			console.log(immediate);
+			if (!immediate) {
+				clearInterval(timeout);
+				timeout = setTimeout(() => {
+					func.apply(this, [...args]);
+				}, wait);
+				return;
+			}
 			func.apply(this, [...args]);
 		};
 	}
