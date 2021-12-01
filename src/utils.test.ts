@@ -23,18 +23,6 @@ describe('debounce', () => {
 		expect(func).toBeCalledTimes(1);
 	});
 
-	test('execute just two times', () => {
-		debouncedFunc = Utils.debounce(func, 1000, true);
-
-		for (let i = 0; i < 2; i++) {
-			debouncedFunc();
-		}
-
-		jest.runAllTimers();
-
-		expect(func).toBeCalledTimes(2);
-	});
-
 	test('wait value is zero if omitted', () => {
 		debouncedFunc = Utils.debounce(func);
 
