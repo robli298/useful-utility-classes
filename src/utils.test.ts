@@ -34,4 +34,18 @@ describe('debounce', () => {
 
 		expect(func).toBeCalledTimes(1);
 	});
+
+	test('should call again in case the time has passed', () => {
+		debouncedFunc = Utils.debounce(func, 200);
+
+		for (let i = 0; i < 10; i++) {
+			// Move on the timer
+			jest.advanceTimersByTime(210);
+			debouncedFunc();
+		}
+
+		jest.runAllTimers();
+
+		expect(func).toBeCalledTimes(10);
+	});
 });
