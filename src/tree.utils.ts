@@ -1,8 +1,8 @@
 export class TreeUtils {
 	/**
-	 * 
+	 *
 	 * Build a tree structure from an array.
-	 * 
+	 *
 	 * @param array data source array.
 	 * @param options - { idPropertyName, parentIdPropertyName }, the properties to be used as a link among the nodes.
 	 * @returns tree like object built from array given.
@@ -14,7 +14,6 @@ export class TreeUtils {
 			parentIdPropertyName: K;
 		}
 	) {
-
 		type U = T & { children: U[] };
 		const root: U[] = [];
 
@@ -43,5 +42,44 @@ export class TreeUtils {
 			}
 		}
 		return root;
+	}
+
+	// TODO search for most efficient way to search on tree
+	// TODO check any open library
+	// TODO that is a slow solution
+
+	/**
+	 * It searches through tree structure given.
+	 *
+	 *  NOTE #1: I'm using concat instead of spread operator because concat is faster, most probably due it benefits from array specific optimizations, while spread operator has to conform to the common iteration protocol.
+	 *
+	 * NOTE #2: I'm using String() because it is the most explicit and it make easier to other people follow intention of my code. In addition to it, it throws no error for null or undefined.
+	 *
+	 * @template T
+	 * @template P
+	 * @param data
+	 * @param property
+	 * @param criteria
+	 *
+	 * @returns array of elements matched the criteria given.
+	 */
+	public static searchBy<T extends { children: T[] }, P extends keyof T>(data: T | T[], property: P, criteria: string): T[] {
+		let elementsFound: T[] = [];
+
+		if (!Array.isArray(data)) {
+			if (String(data[property]).includes(criteria)) {
+				elementsFound.push(data);
+			}
+			elementsFound = elementsFound.concat(TreeUtils.searchBy(data.children, property, criteria));
+		} else {
+			data.forEach((value) => {
+				if (String(value[property]).includes(criteria)) {
+					elementsFound.push(value);
+				}
+				elementsFound = elementsFound.concat(TreeUtils.searchBy(value.children, property, criteria));
+			});
+		}
+
+		return elementsFound;
 	}
 }
