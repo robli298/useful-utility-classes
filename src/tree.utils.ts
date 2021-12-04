@@ -64,22 +64,23 @@ export class TreeUtils {
 	 * @returns array of elements matched the criteria given.
 	 */
 	public static searchBy<T extends { children: T[] }, P extends keyof T>(data: T | T[], property: P, criteria: string): T[] {
+		const predicate = (i: any, c: any, p: any) => String(i[p]).includes(c);
+
 		let elementsFound: T[] = [];
 
 		if (!Array.isArray(data)) {
-			if (String(data[property]).includes(criteria)) {
+			if (predicate.apply(null, [data, criteria, property])) {
 				elementsFound.push(data);
 			}
 			elementsFound = elementsFound.concat(TreeUtils.searchBy(data.children, property, criteria));
 		} else {
 			data.forEach((value) => {
-				if (String(value[property]).includes(criteria)) {
+				if (predicate.apply(null, [value, criteria, property])) {
 					elementsFound.push(value);
 				}
 				elementsFound = elementsFound.concat(TreeUtils.searchBy(value.children, property, criteria));
 			});
 		}
-
 		return elementsFound;
 	}
 }
