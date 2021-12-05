@@ -13,4 +13,26 @@ export class Utils {
 			}
 		};
 	}
+
+	public static groupBy<T, K extends keyof T>(data: T[], property: K) {
+		return Utils.mapBy<T, K>(data, property).reduce((previous, current) => Object.assign(previous, current), {});
+	}
+
+	public static groupByF<T, K extends keyof T>(data: T[], property: K) {
+
+		const result: any = {};
+
+		data.forEach(value => {
+			result[value[property]] = value;
+		})
+
+		return result;
+	}
+
+	private static mapBy<T, K extends keyof T>(data: T[], property: K) {
+		return data.map((value) => {
+			const key: any = value[property];
+			return { [key]: value };
+		});
+	}
 }
