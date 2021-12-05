@@ -48,4 +48,5 @@ describe('debounce', () => {
 
 		expect(func).toBeCalledTimes(10);
 	});
+
 });
