@@ -1,4 +1,14 @@
 
+export abstract class IterableTree {
+	children!: IterableTree[];
+
+	[Symbol.iterator] = function* (this: any): any {
+		yield this;
+		for (let child of this.children) {
+			yield* child;
+		}
+	};
+}
 export class TreeUtils {
 	/**
 	 *
@@ -15,7 +25,7 @@ export class TreeUtils {
 			parentIdPropertyName: K;
 		},
 	) {
-		type U = T & { children: U[]; [Symbol.iterator]: Function };
+		type U = T & { children: U[] };
 		const root: U[] = [];
 
 		if (array) {
@@ -26,20 +36,11 @@ export class TreeUtils {
 
 			array.forEach((value) => {
 				const key = value[idPropertyName];
-
-				// initialize children array
 				(value as any).children = [];
-
-				// make the tree iterable
-				(value as any)[Symbol.iterator] = function * (this): any {
-					yield this;
-					for (let child of this.children) {
-						yield* child;
-					}
-				};
 				nodesByKey.set(key, value);
 			}, new Map());
 
+			// build the tree
 			for (const node of array) {
 				const currentParentKey = node[parentIdPropertyName];
 				const currentKey = node[idPropertyName];
@@ -96,13 +97,14 @@ export class TreeUtils {
 		return elementsFound;
 	}
 
-	public static traverse<T extends { children: T[] }>(data: T | T[], callBack: (node: T) => void) {
+	public static traverse<T extends { children: T[] }>(data: T | T[], callBack: (node: T) => void, context?: any) {
+		const c = context ?? this;
 		if (!Array.isArray(data)) {
-			callBack(data);
+			callBack.apply(c, [data]);
 		} else {
 			data.forEach((node) => {
-				callBack(node);
-				TreeUtils.traverse(node.children, callBack);
+				callBack.apply(c, [node]);
+				TreeUtils.traverse(node.children, callBack, c);
 			});
 		}
 	}
