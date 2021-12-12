@@ -74,9 +74,22 @@ export class TreeUtils {
 	public static searchBy<T extends { children: T[] }, P extends keyof T>(data: T | T[], property: P, criteria: string): T[] {
 		const predicate = (i: any, c: any, p: any) => String(i[p]).includes(c);
 
-		const flattenTree: T[] = [...TreeUtils.toIterator(data)];
+		let elementsFound: T[] = [];
 
-		return flattenTree.filter((item) => predicate.apply(null, [item, criteria, property]));
+		if (!Array.isArray(data)) {
+			if (predicate.apply(null, [data, criteria, property])) {
+				elementsFound.push(data);
+			}
+			elementsFound = elementsFound.concat(TreeUtils.searchBy(data.children, property, criteria));
+		} else {
+			data.forEach((value) => {
+				if (predicate.apply(null, [value, criteria, property])) {
+					elementsFound.push(value);
+				}
+				elementsFound = elementsFound.concat(TreeUtils.searchBy(value.children, property, criteria));
+			});
+		}
+		return elementsFound;
 	}
 
 	public static traverse<T extends { children: T[] }>(data: T | T[], callBack: (node: T) => void, context?: any) {
@@ -91,10 +104,28 @@ export class TreeUtils {
 		}
 	}
 
+
+	/**
+	 * It convert first the tree to iterator, then performs a norma filter on the result list.
+	 *
+	 * @template T
+	 * @template P
+	 *
+	 * @param data tree like data given.
+	 * @param property property to be used inside the search function.
+	 * @param criteria criteria used while performing the search.
+	 *
+	 * @returns items found.
+	 */
+	public static searchByI<T extends { children: T[] }, P extends keyof T>(data: T | T[], property: P, criteria: string): T[] {
+		return [...TreeUtils.toIterator(data)].filter((item) => String(item[property]).includes(criteria));
+	}
+
 	private static *toIterator<T extends { children: T[] }>(data: T | T[]): any {
 		if (Array.isArray(data)) {
 			for (const node of data) {
 				yield node;
+
 				yield* TreeUtils.toIterator(node.children);
 			}
 		} else {
