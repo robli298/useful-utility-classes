@@ -1,7 +1,8 @@
+
 export class TreeUtils {
 	/**
 	 *
-	 * Build a tree structure from an array.
+	 * Build an iterable tree structure from an array.
 	 *
 	 * @param array data source array.
 	 * @param options - { idPropertyName, parentIdPropertyName }, the properties to be used as a link among the nodes.
@@ -12,9 +13,9 @@ export class TreeUtils {
 		options: {
 			idPropertyName: K;
 			parentIdPropertyName: K;
-		}
+		},
 	) {
-		type U = T & { children: U[] };
+		type U = T & { children: U[]; [Symbol.iterator]: Function };
 		const root: U[] = [];
 
 		if (array) {
@@ -22,9 +23,20 @@ export class TreeUtils {
 			const parentIdPropertyName = options.parentIdPropertyName;
 
 			const nodesByKey: Map<T[K], T> = new Map();
+
 			array.forEach((value) => {
 				const key = value[idPropertyName];
+
+				// initialize children array
 				(value as any).children = [];
+
+				// make the tree iterable
+				(value as any)[Symbol.iterator] = function * (this): any {
+					yield this;
+					for (let child of this.children) {
+						yield* child;
+					}
+				};
 				nodesByKey.set(key, value);
 			}, new Map());
 
@@ -82,5 +94,16 @@ export class TreeUtils {
 			});
 		}
 		return elementsFound;
+	}
+
+	public static traverse<T extends { children: T[] }>(data: T | T[], callBack: (node: T) => void) {
+		if (!Array.isArray(data)) {
+			callBack(data);
+		} else {
+			data.forEach((node) => {
+				callBack(node);
+				TreeUtils.traverse(node.children, callBack);
+			});
+		}
 	}
 }
