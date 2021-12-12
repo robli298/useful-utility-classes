@@ -80,9 +80,3 @@ it('It should return two element for the criteria given', () => {
 	const result = TreeUtils.searchBy(tree, 'label', 'Test2');
 	expect(result.length).toEqual(2);
 });
-
-fit('...', () => {
-	const tree = TreeUtils.treeFrom(array, { idPropertyName: 'key', parentIdPropertyName: 'parentKey' });
-	TreeUtils.traverse(tree, (n) => console.log(n));
-	//expect(result.length).toEqual(2);
-});

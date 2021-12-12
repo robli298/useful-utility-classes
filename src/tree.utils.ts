@@ -1,4 +1,13 @@
+export abstract class IterableTree {
+	children!: IterableTree[];
 
+	[Symbol.iterator] = function* (this: any): any {
+		yield this;
+		for (let child of this.children) {
+			yield* child;
+		}
+	};
+}
 export class TreeUtils {
 	/**
 	 *
@@ -15,38 +24,29 @@ export class TreeUtils {
 			parentIdPropertyName: K;
 		},
 	) {
-		type U = T & { children: U[]; [Symbol.iterator]: Function };
+		type U = T & { children: U[] };
 		const root: U[] = [];
 
 		if (array) {
 			const idPropertyName = options.idPropertyName;
 			const parentIdPropertyName = options.parentIdPropertyName;
 
-			const nodesByKey: Map<T[K], T> = new Map();
+			const lookupMap: Map<T[K], T> = new Map();
 
 			array.forEach((value) => {
 				const key = value[idPropertyName];
-
-				// initialize children array
 				(value as any).children = [];
-
-				// make the tree iterable
-				(value as any)[Symbol.iterator] = function * (this): any {
-					yield this;
-					for (let child of this.children) {
-						yield* child;
-					}
-				};
-				nodesByKey.set(key, value);
+				lookupMap.set(key, value);
 			}, new Map());
 
+			// build the tree
 			for (const node of array) {
-				const currentParentKey = node[parentIdPropertyName];
-				const currentKey = node[idPropertyName];
-				const currentNode = nodesByKey.get(currentKey);
+				const currentParentId = node[parentIdPropertyName];
+				const currentId = node[idPropertyName];
+				const currentNode = lookupMap.get(currentId);
 
-				if (currentParentKey) {
-					const currentParentNode = nodesByKey.get(currentParentKey);
+				if (currentParentId) {
+					const currentParentNode = lookupMap.get(currentParentId);
 					(currentParentNode as any).children.push(currentNode);
 					continue;
 				}
@@ -55,10 +55,6 @@ export class TreeUtils {
 		}
 		return root;
 	}
-
-	// TODO search for most efficient way to search on tree
-	// TODO check any open library
-	// TODO that is a slow solution
 
 	/**
 	 * It searches through tree structure given.
@@ -78,32 +74,32 @@ export class TreeUtils {
 	public static searchBy<T extends { children: T[] }, P extends keyof T>(data: T | T[], property: P, criteria: string): T[] {
 		const predicate = (i: any, c: any, p: any) => String(i[p]).includes(c);
 
-		let elementsFound: T[] = [];
+		const flattenTree: T[] = [...TreeUtils.toIterator(data)];
 
-		if (!Array.isArray(data)) {
-			if (predicate.apply(null, [data, criteria, property])) {
-				elementsFound.push(data);
-			}
-			elementsFound = elementsFound.concat(TreeUtils.searchBy(data.children, property, criteria));
-		} else {
-			data.forEach((value) => {
-				if (predicate.apply(null, [value, criteria, property])) {
-					elementsFound.push(value);
-				}
-				elementsFound = elementsFound.concat(TreeUtils.searchBy(value.children, property, criteria));
-			});
-		}
-		return elementsFound;
+		return flattenTree.filter((item) => predicate.apply(null, [item, criteria, property]));
 	}
 
-	public static traverse<T extends { children: T[] }>(data: T | T[], callBack: (node: T) => void) {
+	public static traverse<T extends { children: T[] }>(data: T | T[], callBack: (node: T) => void, context?: any) {
+		const c = context ?? this;
 		if (!Array.isArray(data)) {
-			callBack(data);
+			callBack.apply(c, [data]);
 		} else {
 			data.forEach((node) => {
-				callBack(node);
-				TreeUtils.traverse(node.children, callBack);
+				callBack.apply(c, [node]);
+				TreeUtils.traverse(node.children, callBack, c);
 			});
+		}
+	}
+
+	private static *toIterator<T extends { children: T[] }>(data: T | T[]): any {
+		if (Array.isArray(data)) {
+			for (const node of data) {
+				yield node;
+				yield* TreeUtils.toIterator(node.children);
+			}
+		} else {
+			yield data;
+			yield* TreeUtils.toIterator(data.children);
 		}
 	}
 }
