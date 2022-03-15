@@ -1,7 +1,8 @@
+import { Utils } from "./utils";
 
 
 export class SortUtils {
-    public static quickSort<T>(unsortedArray: T[]): T[] {
+    public static quickSort<T extends number | string>(unsortedArray: T[]): T[] {
 
         if (!unsortedArray || unsortedArray.length < 2) {
             return unsortedArray;
@@ -25,5 +26,48 @@ export class SortUtils {
         }
 
         return [...SortUtils.quickSort(left), pivot, ...SortUtils.quickSort(right)];
+    }
+
+    public static quickSort2<T>(items: T[], leftIndex: number, rightIndex: number) {
+
+        if (items.length > 1) {
+            const index = SortUtils.partition(items, leftIndex, rightIndex);
+
+            if (leftIndex < index - 1) {
+                SortUtils.quickSort2(items, leftIndex, index - 1);
+            }
+
+            if (index < rightIndex) {
+                SortUtils.quickSort2(items, index, rightIndex);
+            }
+        }
+
+        return items;
+    }
+
+    private static partition<T>(items: T[], leftIndex: number, rightIndex: number): number {
+        const pivot = items[Math.floor((leftIndex + rightIndex) / 2)];
+        
+        let i = leftIndex;
+        let j = rightIndex;
+
+        while (i <= j) {
+            while (items[i] < pivot) {
+                i++;
+            }
+
+            while (items[j] > pivot) {
+                j--;
+            }
+
+            if (i <= j) {
+                Utils.swap(items, i, j);
+                i++;
+                j--;
+            }
+
+        }
+
+        return i;
     }
 }
