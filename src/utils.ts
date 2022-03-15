@@ -35,4 +35,10 @@ export class Utils {
 	public static isEqual<T>(a: T[], b: T[]): boolean {
 		return JSON.stringify(a) === JSON.stringify(b);
 	}
+
+	public static swap<T>(items: T[], i: number, j: number) {
+		const temp = items[i];
+		items[i] = items[j];
+		items[j] = temp;
+	}
 }
