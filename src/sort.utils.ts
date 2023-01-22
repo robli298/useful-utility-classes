@@ -28,8 +28,7 @@ export class SortUtils {
         return [...SortUtils.quickSort(left), pivot, ...SortUtils.quickSort(right)];
     }
 
-    public static quickSort2<T>(items: T[], leftIndex: number, rightIndex: number) {
-
+    public static quickSort2<T>(items: T[], leftIndex: number, rightIndex: number): void {
         if (items.length > 1) {
             const index = SortUtils.partition(items, leftIndex, rightIndex);
 
@@ -41,8 +40,6 @@ export class SortUtils {
                 SortUtils.quickSort2(items, index, rightIndex);
             }
         }
-
-        return items;
     }
 
     private static partition<T>(items: T[], leftIndex: number, rightIndex: number): number {
@@ -65,9 +62,7 @@ export class SortUtils {
                 i++;
                 j--;
             }
-
         }
-
         return i;
     }
 }
